@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 // Serve frontend files
 app.use(express.static(path.join(__dirname, "front")));
 
@@ -20,8 +19,8 @@ app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "front", "admin.html"));
 });
 
-// ✅ Use your connection URL
-const MONGO_URI = "mongodb+srv://shubhsoni180:Shubh180@cluster0.blftzf5.mongodb.net/orderDB?retryWrites=true&w=majority&appName=Cluster0";
+// ✅ Mongo URI from environment
+const MONGO_URI = process.env.MONGO_URI;
 
 // ✅ Connect to MongoDB
 mongoose.connect(MONGO_URI, {
@@ -79,7 +78,6 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
-
 // ✅ Update order (status, payment, eta, etc.)
 app.put("/api/orders/:id", async (req, res) => {
   try {
@@ -110,7 +108,7 @@ app.delete("/api/orders/:id", async (req, res) => {
   }
 });
 
-// Start server
+// ✅ Start server with Render port
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
