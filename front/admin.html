@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Manage Orders</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2 { display: flex; align-items: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #333; color: #fff; }
+    button { margin: 2px; padding: 5px 10px; cursor: pointer; }
+    .form-box { margin-bottom: 20px; }
+    input, select { margin: 5px 0; padding: 6px; width: 250px; }
+  </style>
+</head>
+<body>
+  <h2>Admin Panel - Add Order</h2>
+
+  <div class="form-box">
+    <input type="text" id="orderId" placeholder="Order ID" required /><br />
+    <input type="text" id="customerName" placeholder="Customer Name" required /><br />
+    <input type="text" id="from" placeholder="From Location" required /><br />
+    <input type="text" id="to" placeholder="To Location" required /><br />
+    <input type="date" id="bookedOn" /><br />
+
+    <select id="payment" required>
+      <option value="">Select Payment Mode</option>
+      <option value="COD">COD</option>
+      <option value="Online">Online</option>
+      <option value="UPI">UPI</option>
+      <option value="Card">Card</option>
+    </select><br />
+
+    <select id="status">
+      <option value="Pending">Pending</option>
+      <option value="Processing">Processing</option>
+      <option value="In Transit">In Transit</option>
+      <option value="Shipped">Shipped</option>
+      <option value="Delivered">Delivered</option>
+      <option value="Cancelled">Cancelled</option>
+      <option value="Returned">Returned</option>
+    </select><br />
+
+    <input type="date" id="eta" /><br />
+
+    <button onclick="addOrder()">➕ Add Order</button>
+  </div>
+
+  <div id="orders-container"></div>
+
+  <script>
+    const API_URL = "http://localhost:5000/api/orders";
+
+    async function addOrder() {
+      try {
+        const payload = {
+          orderId: document.getElementById("orderId").value.trim(),
+          customerName: document.getElementById("customerName").value.trim(),
+          from: document.getElementById("from").value.trim(),
+          to: document.getElementById("to").value.trim(),
+          bookedOn: document.getElementById("bookedOn").value || null,
+          payment: document.getElementById("payment").value.trim(),
+          status: document.getElementById("status").value.trim(),
+          eta: document.getElementById("eta").value || null,
+        };
+
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message);
+
+        alert("✅ Order Added Successfully!");
+        fetchOrders();
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    }
+
+    async function fetchOrders() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message);
+
+        const container = document.getElementById("orders-container");
+        container.innerHTML = ""; // clear old table
+
+        const table = document.createElement("table");
+        table.innerHTML = `
+          <tr>
+            <th>Order ID</th>
+            <th>Customer Name</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Booked On</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>ETA</th>
+            <th>Actions</th>
+          </tr>`;
+
+        data.forEach(order => {
+          const booked = order.bookedOn ? new Date(order.bookedOn).toLocaleDateString() : "-";
+          const eta = order.eta ? new Date(order.eta).toLocaleDateString() : "-";
+
+          table.innerHTML += `
+            <tr>
+              <td>${order.orderId || "-"}</td>
+              <td>${order.customerName || "-"}</td>
+              <td>${order.from || "-"}</td>
+              <td>${order.to || "-"}</td>
+              <td>${booked}</td>
+              <td>${order.payment || "-"}</td>
+              <td>
+                <select id="status-${order.orderId}">
+                  <option ${order.status==="Pending"?"selected":""}>Pending</option>
+                  <option ${order.status==="Processing"?"selected":""}>Processing</option>
+                  <option ${order.status==="In Transit"?"selected":""}>In Transit</option>
+                  <option ${order.status==="Shipped"?"selected":""}>Shipped</option>
+                  <option ${order.status==="Delivered"?"selected":""}>Delivered</option>
+                  <option ${order.status==="Cancelled"?"selected":""}>Cancelled</option>
+                  <option ${order.status==="Returned"?"selected":""}>Returned</option>
+                </select>
+              </td>
+              <td>${eta}</td>
+              <td>
+                <button onclick="updateStatus('${order.orderId}')">🔄 Update</button>
+                <button onclick="deleteOrder('${order.orderId}')">🗑 Delete</button>
+              </td>
+            </tr>`;
+        });
+
+        container.appendChild(table);
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    }
+
+    async function updateStatus(orderId) {
+      try {
+        const newStatus = document.getElementById(`status-${orderId}`).value;
+        const res = await fetch(`${API_URL}/${orderId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message);
+
+        alert(`✅ Status Updated to "${newStatus}"`);
+        fetchOrders();
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    }
+
+    async function deleteOrder(orderId) {
+      try {
+        const res = await fetch(`${API_URL}/${orderId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message);
+
+        alert("✅ Order Deleted Successfully!");
+        fetchOrders();
+      } catch (err) {
+        alert("❌ " + err.message);
+      }
+    }
+
+    window.onload = fetchOrders;
+  </script>
+</body>
+</html>

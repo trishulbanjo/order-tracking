@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Track Your Order</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; text-align: center; }
+    input { padding: 10px; margin: 10px; width: 250px; }
+    button { padding: 10px 20px; cursor: pointer; }
+    .card { background: white; padding: 20px; margin: 20px auto; width: 400px; border-radius: 8px; box-shadow: 0 0 5px #aaa; text-align: left; }
+  </style>
+</head>
+<body>
+  <h2>Track Your Order</h2>
+  <input type="text" id="orderId" placeholder="Enter Order ID">
+  <button onclick="trackOrder()">Track</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function trackOrder() {
+      const id = document.getElementById("orderId").value.trim();
+      const result = document.getElementById("result");
+      result.innerHTML = ""; // clear previous results
+
+      if (!id) {
+        alert("⚠️ Please enter a valid Order ID!");
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/orders/${id}`);
+        const data = await res.json();
+
+        if (res.status !== 200) {
+          alert("⚠️ Order not found!");
+        } else {
+          result.innerHTML = `
+            <div class="card">
+              <h3>Order: ${data.orderId}</h3>
+              <p><b>Customer:</b> ${data.customerName}</p>
+              <p><b>From:</b> ${data.from}</p>
+              <p><b>To:</b> ${data.to}</p>
+              <p><b>Booked On:</b> ${new Date(data.bookedOn).toLocaleDateString()}</p>
+              <p><b>Payment:</b> ${data.payment}</p>
+              <p><b>Status:</b> ${data.status}</p>
+              <p><b>ETA:</b> ${data.eta ? new Date(data.eta).toLocaleDateString() : "-"}</p>
+            </div>`;
+        }
+      } catch (err) {
+        alert("❌ Error connecting to server. Please try again later.");
+      }
+    }
+  </script>
+</body>
+</html>
