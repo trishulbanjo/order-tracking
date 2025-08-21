@@ -11,6 +11,14 @@ app.use(express.json());
 // Serve frontend files
 app.use(express.static(path.join(__dirname, "front")));
 
+// Default route → user.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "front", "user.html"));
+});
+
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "front", "admin.html"));
+});
 
 // ✅ Use your connection URL
 const MONGO_URI = "mongodb+srv://shubhsoni180:Shubh180@cluster0.blftzf5.mongodb.net/orderDB?retryWrites=true&w=majority&appName=Cluster0";
