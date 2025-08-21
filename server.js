@@ -1,10 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+
+// Serve frontend files
+app.use(express.static(path.join(__dirname, "front")));
+
 
 // ✅ Use your connection URL
 const MONGO_URI = "mongodb+srv://shubhsoni180:Shubh180@cluster0.blftzf5.mongodb.net/orderDB?retryWrites=true&w=majority&appName=Cluster0";
