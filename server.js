@@ -73,7 +73,7 @@ app.post("/api/orders", async (req, res) => {
 // Fetch order by ID
 app.get("/api/orders/:orderId", async (req, res) => {
   try {
-    const order = await Order.findOne({ orderId: req.params.id });
+    const order = await Order.findOne({ orderId: req.params.orderId }); // ✅ fixed
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json(order);
   } catch (err) {
@@ -95,7 +95,7 @@ app.get("/api/orders", async (req, res) => {
 app.put("/api/orders/:orderId", async (req, res) => {
   try {
     const updatedOrder = await Order.findOneAndUpdate(
-      { orderId: req.params.id },
+      { orderId: req.params.orderId }, // ✅ fixed
       req.body,
       { new: true, runValidators: true }
     );
@@ -111,7 +111,7 @@ app.put("/api/orders/:orderId", async (req, res) => {
 // Delete order
 app.delete("/api/orders/:orderId", async (req, res) => {
   try {
-    const deleted = await Order.findOneAndDelete({ orderId: req.params.id });
+    const deleted = await Order.findOneAndDelete({ orderId: req.params.orderId }); // ✅ fixed
     if (!deleted) return res.status(404).json({ error: "Order not found" });
     res.json({ message: "🗑️ Order deleted", deleted });
   } catch (err) {
